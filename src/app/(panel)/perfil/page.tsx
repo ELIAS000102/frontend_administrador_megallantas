@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { LoaderOne } from "@/components/ui/loader"; // Importa tu loader
-import { useUserProfile } from '@/service/hooks/useUserProfile'; // Importa tu hook
+import { useUserProfile } from '@/hooks/useUserProfile'; // Importa tu hook
 
 // --- 1. IMPORTAMOS EL SERVICIO DE AUTH ---
 import * as authService from '@/service/authService';

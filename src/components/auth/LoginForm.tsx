@@ -3,114 +3,139 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import * as authService from "@/service/authService";
-
-// 1. IMPORTAMOS EL LOADER (y quitamos StatefulButton)
 import { LoaderOne } from "@/components/ui/loader";
+// Importamos iconos para mejorar la UX visual de los inputs
+import { IconMail, IconLock, IconAlertCircle, IconEye, IconEyeOff } from "@tabler/icons-react";
 
-// 5. Componente del Formulario de Login
 const LoginForm = () => {
-  // Obtiene la instancia del enrutador
   const router = useRouter();
 
-  // --- LÓGICA IMPLEMENTADA ---
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  // Mantenemos isLoading para deshabilitar los inputs,
-  // pero el botón se gestionará a sí mismo.
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Estado para controlar la visibilidad de la contraseña
+  const [showPassword, setShowPassword] = useState(false);
 
-  // Esta función maneja el envío del formulario
   const handleSubmit = async (e: { preventDefault: () => void }) => {
-    // El 'e' puede venir del 'onSubmit' del form (Enter key)
-    if (e) {
-      e.preventDefault(); // Previene que la página se recargue
-    }
-
+    if (e) e.preventDefault();
     setIsLoading(true);
     setError("");
 
     try {
-      // 1. Usamos el servicio de autenticación
-      // Hacemos 'return' de la promesa para que el StatefulButton
-      // sepa cuánto tiempo debe durar el estado de carga.
       const result = await authService.login(email, password);
 
       if (result.success) {
         console.log("Inicio de sesión exitoso:", result.data);
-        router.push("/dashboard"); // Redirige al dashboard
+        router.push("/dashboard");
       } else {
-        setError(result.error || "Error desconocido"); // Muestra el error del backend
+        setError(result.error || "Credenciales incorrectas");
       }
     } catch (err) {
       setError("Error de conexión. Inténtalo de nuevo.");
       console.error(err);
     } finally {
-      // 2. Pase lo que pase, dejamos de cargar
       setIsLoading(false);
     }
   };
 
-  return (
-    // Agregamos el 'onSubmit' al formulario para manejar la tecla "Enter"
-    <form className="space-y-4" onSubmit={handleSubmit}>
-      <div>
-        <label
-          htmlFor="email-login"
-          className="block text-sm font-medium text-gray-700 dark:text-neutral-300"
-        >
-          Email
-        </label>
+  // Clases comunes para mantener consistencia
+  const inputWrapperClass = "relative group";
+  const iconClass = "absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-yellow-600 transition-colors duration-200";
+  // Ajustamos padding derecho (pr-10) para que el texto no choque con el ojo
+  const inputClass = "w-full bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-gray-900 dark:text-white text-sm rounded-xl focus:ring-2 focus:ring-yellow-500/20 focus:border-yellow-500 block pl-10 pr-10 p-3 outline-none transition-all duration-200 placeholder:text-gray-400";
+  const labelClass = "block mb-1.5 text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 ml-1";
 
-        <input
-          id="email-login"
-          name="email"
-          type="email"
-          required
-          value={email} // Controlado por el estado
-          onChange={(e) => setEmail(e.target.value)} // Actualiza el estado
-          disabled={isLoading} // Deshabilitado durante la carga
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-black shadow-sm focus:border-yellow-500 focus:outline-none focus:ring-yellow-500 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white"
-          placeholder="tu@email.com"
-        />
+  return (
+    <form className="space-y-6 mt-4" onSubmit={handleSubmit}>
+      
+      {/* Input Email */}
+      <div className={inputWrapperClass}>
+        <label htmlFor="email-login" className={labelClass}>
+          Correo Electrónico
+        </label>
+        <div className="relative">
+            <div className={iconClass}>
+                <IconMail size={18} />
+            </div>
+            <input
+            id="email-login"
+            name="email"
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={isLoading}
+            className={inputClass}
+            placeholder="admin@megallantas.com"
+            />
+        </div>
       </div>
-      <div>
-        <label
-          htmlFor="password-login"
-          className="block text-sm font-medium text-gray-700 dark:text-neutral-300"
-        >
+
+      {/* Input Password */}
+      <div className={inputWrapperClass}>
+        <label htmlFor="password-login" className={labelClass}>
           Contraseña
         </label>
-        <input
-          id="password-login"
-          name="password"
-          type="password"
-          required
-          value={password} // Controlado por el estado
-          onChange={(e) => setPassword(e.target.value)} // Actualiza el estado
-          disabled={isLoading} // Deshabilitado durante la carga
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-black shadow-sm focus:border-yellow-500 focus:outline-none focus:ring-yellow-500 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white"
-          placeholder="••••••••"
-        />
+        <div className="relative">
+            <div className={iconClass}>
+                <IconLock size={18} />
+            </div>
+            <input
+            id="password-login"
+            name="password"
+            // Cambiamos dinámicamente el tipo de input
+            type={showPassword ? "text" : "password"}
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            disabled={isLoading}
+            className={inputClass}
+            placeholder="••••••••"
+            />
+            
+            {/* Botón para mostrar/ocultar contraseña */}
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-yellow-600 transition-colors focus:outline-none"
+              tabIndex={-1} // Evita que se enfoque al tabulard
+            >
+              {showPassword ? <IconEyeOff size={18} /> : <IconEye size={18} />}
+            </button>
+        </div>
       </div>
-      {/* Muestra de error */}
-      {error && <p className="text-sm text-red-600">{error}</p>}
-      {/* 3. REEMPLAZAMOS EL BOTÓN */}
-      {/* 2. VOLVEMOS AL BOTÓN ESTÁNDAR */}
+
+      {/* Mensaje de Error con Animación y Diseño */}
+      {error && (
+        <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50 border border-red-100 text-red-600 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400 text-sm animate-in fade-in slide-in-from-top-1">
+            <IconAlertCircle size={18} className="shrink-0" />
+            <p>{error}</p>
+        </div>
+      )}
+
+      {/* Botón de Acción */}
       <button
-        type="submit" // El tipo 'submit' llamará a 'handleSubmit'
-        className="mt-10 w-full flex justify-center rounded-md bg-yellow-500 px-4 py-2 text-sm font-medium text-black shadow-sm hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 disabled:opacity-50"
-        disabled={isLoading} // Deshabilitado durante la carga
+        type="submit"
+        disabled={isLoading}
+        className="w-full flex justify-center items-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg text-sm font-bold text-black bg-yellow-400 hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 disabled:opacity-70 disabled:cursor-not-allowed transition-all duration-200 transform active:scale-[0.98]"
       >
-{/* 3. USAMOS EL LOADERONE EN LUGAR DEL TEXTO */}
         {isLoading ? (
-          <div className="scale-75"> {/* <-- ¡AQUÍ ESTÁ EL CAMBIO! */}
+          <div className="scale-75">
             <LoaderOne />
           </div>
         ) : (
-          "Entrar"
+          "Iniciar Sesión"
         )}
       </button>
+      
+      {/* Footer del formulario (Opcional) */}
+      <div className="text-center mt-4">
+        <p className="text-xs text-gray-400 dark:text-gray-500">
+            ¿Olvidaste tu contraseña? Contacta a soporte.
+        </p>
+      </div>
     </form>
   );
 };
