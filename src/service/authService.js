@@ -63,3 +63,33 @@ export const logout = async () => {
   }
 };
 
+/**
+ * Sube una nueva foto de perfil.
+ * @param {File} file - El archivo de imagen.
+ */
+export const updateProfilePhoto = async (file) => {
+  try {
+    const formData = new FormData();
+    formData.append('imagen', file);
+
+    const res = await fetch(`${API_URL}/api/usuarios/foto-perfil`, {
+      method: 'POST',
+      body: formData,
+      credentials: 'include', // Necesario para la cookie de sesión
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      return { success: false, error: data.error || 'Error al subir imagen' };
+    }
+
+    return { success: true, avatarUrl: data.avatarUrl };
+
+  } catch (err) {
+    console.error('Error uploading photo:', err);
+    return { success: false, error: 'Error de conexión al subir imagen' };
+  }
+};
+
+
