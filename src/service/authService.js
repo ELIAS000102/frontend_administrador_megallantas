@@ -92,4 +92,26 @@ export const updateProfilePhoto = async (file) => {
   }
 };
 
+// --- GESTIÓN DE USUARIOS ---
+
+export const getAllUsers = async () => {
+  try {
+    const res = await fetch(`${API_URL}/api/usuarios/todos`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Cache-Control': 'no-store' 
+      }
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      return { success: false, error: data.error || 'Error al obtener usuarios' };
+    }
+    return { success: true, data: data }; 
+  } catch (err) {
+    console.error('Error fetching users:', err);
+    return { success: false, error: 'Error de conexión al cargar clientes' };
+  }
+};
+
 
