@@ -8,8 +8,11 @@ import {
   IconUsers,
   IconCurrencySom
 } from "@tabler/icons-react";
-// Importamos el servicio
+// Importamos el servicio existente
 import { getDashboardSummary } from "@/service/dashboardService";
+
+// --- NUEVO: Importamos el Modal que creaste ---
+import { RestockModal } from "@/components/RestockModal";
 
 interface DashboardData {
   kpis: {
@@ -29,6 +32,9 @@ interface DashboardData {
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // --- NUEVO: Estado para abrir/cerrar el modal ---
+  const [showRestockModal, setShowRestockModal] = useState(false);
 
   // --- HISTORIA DE USUARIO 1: CARGA INICIAL ---
   useEffect(() => {
@@ -74,6 +80,32 @@ export default function DashboardPage() {
             </p>
           </div>
 
+          {/* ----------------------------------------------------------
+              BLOQUE DE ALERTA DE STOCK (NUEVO)
+              Se muestra solo si hay stock crítico (> 0)
+             ---------------------------------------------------------- */}
+          {data?.kpis.stockCritico && data.kpis.stockCritico > 0 ? (
+            <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg shadow-sm flex flex-col sm:flex-row justify-between items-center animate-pulse">
+              <div className="flex items-center mb-4 sm:mb-0">
+                <div className="bg-red-100 p-2 rounded-full mr-4">
+                  <IconAlertTriangle className="text-red-600" size={32} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-red-800 text-lg">¡Atención requerida en Inventario!</h3>
+                  <p className="text-red-600">
+                    Se han detectado <span className="font-bold">{data.kpis.stockCritico} productos</span> con stock crítico.
+                  </p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setShowRestockModal(true)} // Abre el modal
+                className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-medium shadow-md transition-all transform hover:scale-105"
+              >
+                Gestionar Reposición
+              </button>
+            </div>
+          ) : null}
+
           {/* KPI CARDS (DATOS REALES DEL BACKEND) */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             
@@ -101,7 +133,7 @@ export default function DashboardPage() {
               color="bg-purple-50 dark:bg-purple-900/20"
             />
 
-            {/* KPI 4: Alerta Stock */}
+            {/* KPI 4: Alerta Stock (Visualización pequeña) */}
             <div className="p-5 rounded-2xl bg-white dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 shadow-sm">
                 <div className="flex justify-between items-start mb-4">
                     <div className={`p-3 rounded-xl ${data?.kpis.stockCritico && data.kpis.stockCritico > 0 ? 'bg-red-50 dark:bg-red-900/20' : 'bg-gray-50 dark:bg-neutral-800'}`}>
@@ -121,7 +153,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* LISTA DE TOP PRODUCTOS (Parte de la Historia 1) */}
+          {/* LISTA DE TOP PRODUCTOS */}
           <div className="bg-white dark:bg-neutral-900 p-6 rounded-3xl border border-gray-100 dark:border-neutral-800 shadow-sm">
             <h3 className="font-bold text-lg text-neutral-900 dark:text-white mb-6">Productos Más Vendidos</h3>
             <div className="space-y-4">
@@ -153,11 +185,21 @@ export default function DashboardPage() {
 
         </div>
       </div>
+
+      {/* ----------------------------------------------------------
+          MODAL DE REPOSICIÓN (NUEVO)
+          Se coloca al final para que se superponga correctamente
+         ---------------------------------------------------------- */}
+      <RestockModal 
+        isOpen={showRestockModal} 
+        onClose={() => setShowRestockModal(false)} 
+      />
+
     </div>
   );
 }
 
-// Subcomponente simple para KPIs
+// Subcomponente simple para KPIs (Sin cambios)
 function KpiCard({ title, value, icon, color }: any) {
   return (
     <div className="p-5 rounded-2xl bg-white dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 shadow-sm">
